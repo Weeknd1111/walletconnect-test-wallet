@@ -19,8 +19,8 @@ export const AccountSource = {
 
 export interface IAccount {
   address: string;
-  source: number; //来源
-  pathIndex: number; //当source=0时有效;来自词的index
+  source: number; // 账户来源AccountSource
+  pathIndex: number; // 助记词中的index
   privateKey: string;
 }
 
@@ -34,16 +34,17 @@ export class WalletController {
   public activeChainId: number = DEFAULT_CHAIN_ID;
 
   // 账户
-  private accounts : IAccount[] = [];
+  private accounts: IAccount[] = [];
   // 下次使用的词索引
-  private nextMnemonicPathIndex : number = 0;
+  private nextMnemonicPathIndex: number = 0;
 
   constructor() {
     // this.path = this.getPath();
     // this.entropy = this.getEntropy();
     // this.mnemonic = this.getMnemonic();
+    // console.log(this.mnemonic);
     // this.wallet = this.init();
-
+    
     this.loadAccounts();
     this.loadMnemonic();
     if(this.accounts.length > 0) {
@@ -73,99 +74,95 @@ export class WalletController {
     return this.wallet;
   }
 
-  //每次增加或者删除账户需要更新账户
+  // 每次增加或者删除账户需要更新账户
   public getAccounts() {
     const accounts: string[] = [];
     for (let i = 0; i < this.accounts.length; i++) {
-      const account : IAccount = this.accounts[i];
+      const account: IAccount = this.accounts[i];
       accounts.push(account.address);
     }
     return accounts;
   }
 
-  //获取索引账户私钥
+  // 获取索引账户私钥
   public getPrivateKey(index: number) {
-    if(index < this.accounts.length) {
-      const account : IAccount = this.accounts[index];
+    if (index < this.accounts.length) {
+      const account: IAccount = this.accounts[index];
       return account.privateKey;
-    }
-    else {
+    } else {
       throw Error("error index");
     }
   }
 
-  //根据索引删除一个账户
-  public removeAccount(index : number) {
-    if(index < this.accounts.length) {
+  // 根据索引删除一个账户
+  public removeAccount(index: number) {
+    if (index < this.accounts.length) {
       this.accounts.splice(index, 1);
       this.saveAccounts();
-      //TODO 更新当前选中
-    }
-    else {
+      // TODO 更新当前选中
+    } else {
       throw Error("error index");
     }
   }
-  
-  //添加一个账户
-  public addAccount(privateKey? : string) : IAccount {
 
-    if(privateKey && privateKey.length > 0) {
-      //添加到账户上
+  // 添加一个账户
+  public addAccount(privateKey?: string): IAccount {
+    if (privateKey && privateKey.length > 0) {
+      // 添加到账户上
       const wallet = new ethers.Wallet(privateKey);
 
-      const address : string = wallet.address;
+      const address: string = wallet.address;
       const account: IAccount = {
         address,
         source: AccountSource.privateKey,
         privateKey,
-        pathIndex: 0
-      }
+        pathIndex: 0,
+      };
       this.accounts.push(account);
       this.saveAccounts();
-      //更新选中账户
-      this.update(this.accounts.length-1,this.activeChainId);
-    }
-    else {
+      // 更新选中账户
+      this.update(this.accounts.length - 1, this.activeChainId);
+    } else {
       const wallet = this.generateWallet(this.nextMnemonicPathIndex);
-      const address : string = wallet.address;
-      const privateKey : string = wallet.privateKey;
+      const address: string = wallet.address;
+      const privateKey: string = wallet.privateKey;
       const account: IAccount = {
         address,
         source: AccountSource.mnemonic,
         privateKey,
-        pathIndex: this.nextMnemonicPathIndex 
-      }
+        pathIndex: this.nextMnemonicPathIndex,
+      };
       this.accounts.push(account);
       this.saveAccounts();
-      //存储当前词index
-      this.nextMnemonicPathIndex ++;
+      // 存储当前词index
+      this.nextMnemonicPathIndex++;
       setLocal(NEXT_MNEMONIC_PATH_INDEX, this.nextMnemonicPathIndex);
-      //更新选中账户
-      this.update(this.accounts.length-1,this.activeChainId);
+      // 更新选中账户
+      this.update(this.accounts.length - 1, this.activeChainId);
     }
     throw Error("error addAccount");
   }
 
-  //加载词
+  // 加载词
   private loadMnemonic() {
     this.mnemonic = getLocal(MNEMONIC_KEY)
   }
 
-  //加载账户
+  // 加载账户
   private loadAccounts() {
     this.accounts = getLocal(ACCOUNTS);
   }
 
-  //保存账户
+  // 保存账户
   private saveAccounts() {
     setLocal(ACCOUNTS, this.accounts);
   }
 
-  //设置默认词
-  public setMnemonic(value : string) {
+  // 设置默认词
+  public setMnemonic(value: string) {
     this.mnemonic = value;
     this.init();
-    setLocal(MNEMONIC_KEY,this.mnemonic);
+    setLocal(MNEMONIC_KEY, this.mnemonic);
   }
 
   public getData(key: string): string {
@@ -202,9 +199,9 @@ export class WalletController {
   }
 
   // 通过accouns的index获取wallet
-  public getIndexWallet(index : number) : ethers.ethers.Wallet {
+  public getIndexWallet(index: number): ethers.ethers.Wallet {
     const privateKey = this.getPrivateKey(index);
-    if(privateKey !== "") {
+    if (privateKey !== "") {
       return new ethers.Wallet(privateKey);
     }
     throw new Error("error index privateKey");
@@ -224,7 +221,13 @@ export class WalletController {
   }
 
   public init(index = DEFAULT_ACTIVE_INDEX, chainId = DEFAULT_CHAIN_ID): ethers.Wallet {
-    return this.update(index, chainId);
+    if(index < this.accounts.length) {
+      return this.update(index, chainId);
+    }
+    else {
+      // error
+      return this.wallet;
+    }
   }
 
   public update(index: number, chainId: number): ethers.Wallet {
