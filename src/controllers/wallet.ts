@@ -34,7 +34,7 @@ export class WalletController {
   public activeChainId: number = DEFAULT_CHAIN_ID;
 
   // 账户
-  private accounts: IAccount[] = [];
+  private accounts: IAccount[];
   // 下次使用的词索引
   private nextMnemonicPathIndex: number = 0;
 
@@ -47,7 +47,12 @@ export class WalletController {
 
     this.loadAccounts();
     this.loadMnemonic();
-    if(this.accounts.length > 0) {
+    
+    if(!this.accounts) {
+      this.accounts = [];
+    }
+
+    if (this.accounts.length > 0) {
       this.wallet = this.init();
     }
   }
@@ -75,7 +80,7 @@ export class WalletController {
   }
 
   // 每次增加或者删除账户需要更新账户
-  public getAccounts() : string[] {
+  public getAccounts(): string[] {
     const accounts: string[] = [];
     for (let i = 0; i < this.accounts.length; i++) {
       const account: IAccount = this.accounts[i];
@@ -85,12 +90,12 @@ export class WalletController {
   }
 
   // 获取索引账户私钥
-  public getPrivateKey(index: number) :string {
+  public getPrivateKey(index: number): string {
     if (index < this.accounts.length) {
       const account: IAccount = this.accounts[index];
       return account.privateKey;
     } else {
-      throw Error("error index");
+      throw Error("error index: " + index);
     }
   }
 
@@ -101,7 +106,7 @@ export class WalletController {
       this.saveAccounts();
       // TODO 更新当前选中
     } else {
-      throw Error("error index");
+      throw Error("error index: " + index);
     }
   }
 
@@ -145,7 +150,7 @@ export class WalletController {
 
   // 加载词
   private loadMnemonic() {
-    this.mnemonic = getLocal(MNEMONIC_KEY)
+    this.mnemonic = getLocal(MNEMONIC_KEY);
   }
 
   // 加载账户
@@ -221,10 +226,9 @@ export class WalletController {
   }
 
   public init(index = DEFAULT_ACTIVE_INDEX, chainId = DEFAULT_CHAIN_ID): ethers.Wallet {
-    if(index < this.accounts.length) {
+    if (index < this.accounts.length) {
       return this.update(index, chainId);
-    }
-    else {
+    } else {
       // error
       return this.wallet;
     }
@@ -234,11 +238,13 @@ export class WalletController {
     const firstUpdate = typeof this.wallet === "undefined";
     this.activeIndex = index;
     this.activeChainId = chainId;
-    const rpcUrl = getChainData(chainId).rpc_url;
     // const wallet = this.generateWallet(index);
-    const wallet = this.getIndexWallet(index);
-    const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-    this.wallet = wallet.connect(provider);
+    if(index < this.accounts.length) {
+      const rpcUrl = getChainData(chainId).rpc_url;
+      const wallet = this.getIndexWallet(index);
+      const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
+      this.wallet = wallet.connect(provider);
+    }
     if (!firstUpdate) {
       // update another controller if necessary here
     }
