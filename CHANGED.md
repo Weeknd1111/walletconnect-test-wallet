@@ -24,3 +24,5 @@ src/controllers/wallet.ts
 - setMnemonic(value : string) 设置助记词
 - addAccount(privateKey? : string) 添加一个账户 
 - removeAccount(index : number) 删除账户
+- getAccounts() : string[] 获取账号列表
+- getPrivateKey(index: number) :string 获取账户私钥

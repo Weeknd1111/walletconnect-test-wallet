@@ -44,7 +44,7 @@ export class WalletController {
     // this.mnemonic = this.getMnemonic();
     // console.log(this.mnemonic);
     // this.wallet = this.init();
-    
+
     this.loadAccounts();
     this.loadMnemonic();
     if(this.accounts.length > 0) {
@@ -75,7 +75,7 @@ export class WalletController {
   }
 
   // 每次增加或者删除账户需要更新账户
-  public getAccounts() {
+  public getAccounts() : string[] {
     const accounts: string[] = [];
     for (let i = 0; i < this.accounts.length; i++) {
       const account: IAccount = this.accounts[i];
@@ -85,7 +85,7 @@ export class WalletController {
   }
 
   // 获取索引账户私钥
-  public getPrivateKey(index: number) {
+  public getPrivateKey(index: number) :string {
     if (index < this.accounts.length) {
       const account: IAccount = this.accounts[index];
       return account.privateKey;
