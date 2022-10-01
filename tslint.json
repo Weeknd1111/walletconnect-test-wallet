@@ -1,4 +1,6 @@
 {
+  "defaultSeverity": "none",
+  
   "extends": ["tslint:recommended", "tslint-react", "tslint-config-prettier"],
   "rules": {
     "prefer-for-of": false,
