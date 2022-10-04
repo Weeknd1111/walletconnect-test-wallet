@@ -1,4 +1,5 @@
 import * as React from "react";
+import "./App.css";
 import styled from "styled-components";
 import WalletConnect from "@walletconnect/client";
 import Button from "./components/Button";
@@ -11,6 +12,7 @@ import RequestDisplay from "./components/RequestDisplay";
 import RequestButton from "./components/RequestButton";
 import AccountDetails from "./components/AccountDetails";
 import QRCodeScanner, { IQRCodeValidateResponse } from "./components/QRCodeScanner";
+import Mnemonic from "./components/Mnemonic";
 import { DEFAULT_CHAIN_ID, DEFAULT_ACTIVE_INDEX } from "./constants/default";
 import { getCachedSession } from "./helpers/utilities";
 import { getAppControllers } from "./controllers";
@@ -107,6 +109,7 @@ const SRequestButton = styled(RequestButton)`
 
 export interface IAppState {
   loading: boolean;
+  hasMnemonic: boolean;
   scanner: boolean;
   connector: WalletConnect | null;
   uri: string;
@@ -118,6 +121,7 @@ export interface IAppState {
     ssl: boolean;
   };
   connected: boolean;
+  mnemonic: string;
   chainId: number;
   accounts: string[];
   activeIndex: number;
@@ -127,11 +131,13 @@ export interface IAppState {
   payload: any;
 }
 
+export const DEFAULT_MNEMONIC = getAppControllers().wallet.getMnemonic();
 export const DEFAULT_ACCOUNTS = getAppControllers().wallet.getAccounts();
 export const DEFAULT_ADDRESS = DEFAULT_ACCOUNTS[DEFAULT_ACTIVE_INDEX];
 
 export const INITIAL_STATE: IAppState = {
   loading: false,
+  hasMnemonic: false,
   scanner: false,
   connector: null,
   uri: "",
@@ -143,6 +149,7 @@ export const INITIAL_STATE: IAppState = {
     ssl: false,
   },
   connected: false,
+  mnemonic: DEFAULT_MNEMONIC,
   chainId: getAppConfig().chainId || DEFAULT_CHAIN_ID,
   accounts: DEFAULT_ACCOUNTS,
   address: DEFAULT_ADDRESS,
@@ -162,7 +169,7 @@ class App extends React.Component<{}> {
     };
   }
   public componentDidMount() {
-    this.init();
+    this.initMnemonic();
   }
 
   public init = async () => {
@@ -200,6 +207,26 @@ class App extends React.Component<{}> {
   };
 
   public bindedSetState = (newState: Partial<IAppState>) => this.setState(newState);
+
+  // 初始化助记词
+  public initMnemonic = async () => {
+    console.log("initMnemonic");
+    const { mnemonic } = this.state;
+    if (mnemonic) {
+      await this.setState({ hasMnemonic: true });
+      this.init();
+    }
+  };
+
+  // 设置助记词
+  public onSetMnemonic = async (mnemonic: string) => {
+    console.log(mnemonic);
+    getAppControllers().wallet.setMnemonic(mnemonic);
+    getAppControllers().wallet.addAccount();
+    if (mnemonic) {
+      await this.setState({ hasMnemonic: true });
+    }
+  };
 
   public initWalletConnect = async () => {
     const { uri } = this.state;
@@ -460,6 +487,8 @@ class App extends React.Component<{}> {
   public render() {
     const {
       peerMeta,
+      hasMnemonic,
+      mnemonic,
       scanner,
       connected,
       activeIndex,
@@ -471,28 +500,51 @@ class App extends React.Component<{}> {
     } = this.state;
     return (
       <React.Fragment>
-        <SContainer>
-          <Header
-            connected={connected}
-            address={address}
-            chainId={chainId}
-            killSession={this.killSession}
-          />
-          <SContent>
-            <Card maxWidth={400}>
-              <SLogo>
-                <img src={getAppConfig().logo} alt={getAppConfig().name} />
-              </SLogo>
-              {!connected ? (
-                peerMeta && peerMeta.name ? (
-                  <Column>
-                    <PeerMeta peerMeta={peerMeta} />
-                    <SActions>
-                      <Button onClick={this.approveSession}>{`Approve`}</Button>
-                      <Button onClick={this.rejectSession}>{`Reject`}</Button>
-                    </SActions>
-                  </Column>
-                ) : (
+        {hasMnemonic ? (
+          <SContainer>
+            <Header
+              connected={connected}
+              address={address}
+              chainId={chainId}
+              killSession={this.killSession}
+            />
+            <SContent>
+              <Card maxWidth={400}>
+                <SLogo>
+                  <img src={getAppConfig().logo} alt={getAppConfig().name} />
+                </SLogo>
+                {!connected ? (
+                  peerMeta && peerMeta.name ? (
+                    <Column>
+                      <PeerMeta peerMeta={peerMeta} />
+                      <SActions>
+                        <Button onClick={this.approveSession}>{`Approve`}</Button>
+                        <Button onClick={this.rejectSession}>{`Reject`}</Button>
+                      </SActions>
+                    </Column>
+                  ) : (
+                    <Column>
+                      <AccountDetails
+                        chains={getAppConfig().chains}
+                        address={address}
+                        activeIndex={activeIndex}
+                        chainId={chainId}
+                        accounts={accounts}
+                        updateAddress={this.updateAddress}
+                        updateChain={this.updateChain}
+                      />
+                      <SActionsColumn>
+                        <SButton onClick={this.toggleScanner}>{`Scan`}</SButton>
+                        {getAppConfig().styleOpts.showPasteUri && (
+                          <>
+                            <p>{"OR"}</p>
+                            <SInput onChange={this.onURIPaste} placeholder={"Paste wc: uri"} />
+                          </>
+                        )}
+                      </SActionsColumn>
+                    </Column>
+                  )
+                ) : !payload ? (
                   <Column>
                     <AccountDetails
                       chains={getAppConfig().chains}
@@ -503,70 +555,57 @@ class App extends React.Component<{}> {
                       updateAddress={this.updateAddress}
                       updateChain={this.updateChain}
                     />
-                    <SActionsColumn>
-                      <SButton onClick={this.toggleScanner}>{`Scan`}</SButton>
-                      {getAppConfig().styleOpts.showPasteUri && (
-                        <>
-                          <p>{"OR"}</p>
-                          <SInput onChange={this.onURIPaste} placeholder={"Paste wc: uri"} />
-                        </>
-                      )}
-                    </SActionsColumn>
+                    {peerMeta && peerMeta.name && (
+                      <>
+                        <h6>{"Connected to"}</h6>
+                        <SConnectedPeer>
+                          <img src={peerMeta.icons[0]} alt={peerMeta.name} />
+                          <div>{peerMeta.name}</div>
+                        </SConnectedPeer>
+                      </>
+                    )}
+                    <h6>{"Pending Call Requests"}</h6>
+                    {requests.length ? (
+                      requests.map(request => (
+                        <SRequestButton key={request.id} onClick={() => this.openRequest(request)}>
+                          <div>{request.method}</div>
+                        </SRequestButton>
+                      ))
+                    ) : (
+                      <div>
+                        <div>{"No pending requests"}</div>
+                      </div>
+                    )}
                   </Column>
-                )
-              ) : !payload ? (
-                <Column>
-                  <AccountDetails
-                    chains={getAppConfig().chains}
-                    address={address}
-                    activeIndex={activeIndex}
-                    chainId={chainId}
-                    accounts={accounts}
-                    updateAddress={this.updateAddress}
-                    updateChain={this.updateChain}
+                ) : (
+                  <RequestDisplay
+                    payload={payload}
+                    peerMeta={peerMeta}
+                    renderPayload={(payload: any) => getAppConfig().rpcEngine.render(payload)}
+                    approveRequest={this.approveRequest}
+                    rejectRequest={this.rejectRequest}
                   />
-                  {peerMeta && peerMeta.name && (
-                    <>
-                      <h6>{"Connected to"}</h6>
-                      <SConnectedPeer>
-                        <img src={peerMeta.icons[0]} alt={peerMeta.name} />
-                        <div>{peerMeta.name}</div>
-                      </SConnectedPeer>
-                    </>
-                  )}
-                  <h6>{"Pending Call Requests"}</h6>
-                  {requests.length ? (
-                    requests.map(request => (
-                      <SRequestButton key={request.id} onClick={() => this.openRequest(request)}>
-                        <div>{request.method}</div>
-                      </SRequestButton>
-                    ))
-                  ) : (
-                    <div>
-                      <div>{"No pending requests"}</div>
-                    </div>
-                  )}
-                </Column>
-              ) : (
-                <RequestDisplay
-                  payload={payload}
-                  peerMeta={peerMeta}
-                  renderPayload={(payload: any) => getAppConfig().rpcEngine.render(payload)}
-                  approveRequest={this.approveRequest}
-                  rejectRequest={this.rejectRequest}
-                />
-              )}
-            </Card>
-          </SContent>
-          {scanner && (
-            <QRCodeScanner
-              onValidate={this.onQRCodeValidate}
-              onScan={this.onQRCodeScan}
-              onError={this.onQRCodeError}
-              onClose={this.onQRCodeClose}
-            />
-          )}
-        </SContainer>
+                )}
+              </Card>
+            </SContent>
+            {scanner && (
+              <QRCodeScanner
+                onValidate={this.onQRCodeValidate}
+                onScan={this.onQRCodeScan}
+                onError={this.onQRCodeError}
+                onClose={this.onQRCodeClose}
+              />
+            )}
+          </SContainer>
+        ) : (
+          <SContainer>
+            <SContent>
+              <Card maxWidth={400}>
+                <Mnemonic mnemonic={mnemonic} onSetMnemonic={this.onSetMnemonic} />
+              </Card>
+            </SContent>
+          </SContainer>
+        )}
         {getAppConfig().styleOpts.showVersion && (
           <SVersionNumber>{`v${process.env.REACT_APP_VERSION}`} </SVersionNumber>
         )}

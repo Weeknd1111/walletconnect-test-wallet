@@ -36,7 +36,7 @@ export class WalletController {
   // 账户
   private accounts: IAccount[];
   // 下次使用的词索引
-  private nextMnemonicPathIndex: number = 0;
+  private nextMnemonicPathIndex = 0;
 
   constructor() {
     // this.path = this.getPath();
@@ -47,8 +47,8 @@ export class WalletController {
 
     this.loadAccounts();
     this.loadMnemonic();
-    
-    if(!this.accounts) {
+
+    if (!this.accounts) {
       this.accounts = [];
     }
 
@@ -222,7 +222,8 @@ export class WalletController {
   }
 
   public getMnemonic(): string {
-    return this.getData(MNEMONIC_KEY);
+    return getLocal(MNEMONIC_KEY);
+    // return this.getData(MNEMONIC_KEY);
   }
 
   public init(index = DEFAULT_ACTIVE_INDEX, chainId = DEFAULT_CHAIN_ID): ethers.Wallet {
@@ -239,7 +240,7 @@ export class WalletController {
     this.activeIndex = index;
     this.activeChainId = chainId;
     // const wallet = this.generateWallet(index);
-    if(index < this.accounts.length) {
+    if (index < this.accounts.length) {
       const rpcUrl = getChainData(chainId).rpc_url;
       const wallet = this.getIndexWallet(index);
       const provider = new ethers.providers.JsonRpcProvider(rpcUrl);

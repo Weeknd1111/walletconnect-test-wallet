@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import Dropdown from "../components/Dropdown";
+import AddAccount from "./AddAccount";
 import { IChainData } from "../helpers/types";
 import { ellipseAddress, getViewportDimensions } from "../helpers/utilities";
 import { responsive } from "../styles";
@@ -8,6 +9,12 @@ import Blockie from "./Blockie";
 
 const SSection = styled.div`
   width: 100%;
+`;
+
+const SAccountHead = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const SBlockie = styled(Blockie)`
@@ -48,7 +55,10 @@ const AccountDetails = (props: IAccountDetailsProps) => {
   return (
     <React.Fragment>
       <SSection>
-        <h6>{"Account"}</h6>
+        <SAccountHead>
+          <h6>{"Account"}</h6>
+          <AddAccount />
+        </SAccountHead>
         <SAddressDropdownWrapper>
           <SBlockie size={40} address={address} />
           <Dropdown
