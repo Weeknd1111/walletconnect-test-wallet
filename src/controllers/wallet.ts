@@ -112,12 +112,25 @@ export class WalletController {
   }
 
   // 添加一个账户
-  public addAccount(privateKey?: string) {
-    if (privateKey && privateKey.length > 0) {
+  // 返回 成功=0,私钥不合法=1
+  public addAccount(privateKey?: string) : number {
+    if (typeof privateKey === "string") {
+      //缺少0x的私钥
+      if (privateKey.length === 64 && privateKey.match(/^[0-9a-f]*$/i)) {
+        privateKey = "0x" + privateKey;
+      }
+      else if(privateKey.length === 66 && privateKey.match(/^[0-9a-fx]*$/i)) {
+        //正常私钥,不需要判断
+      }
+      else {
+        return 1;
+      }
       // 添加到账户上
       const wallet = new ethers.Wallet(privateKey);
-
       const address: string = wallet.address;
+
+      // console.log("addAccount privateKey: "+ privateKey + " , address: " + address);
+
       const account: IAccount = {
         address,
         source: AccountSource.privateKey,
@@ -128,6 +141,7 @@ export class WalletController {
       this.saveAccounts();
       // 更新选中账户
       this.update(this.accounts.length - 1, this.activeChainId);
+
     } else {
       const wallet = this.generateWallet(this.nextMnemonicPathIndex);
       const address: string = wallet.address;
@@ -146,6 +160,8 @@ export class WalletController {
       // 更新选中账户
       this.update(this.accounts.length - 1, this.activeChainId);
     }
+
+    return 0;
   }
 
   // 加载词
@@ -228,12 +244,12 @@ export class WalletController {
 
   public getMnemonic(): string {
     //当前不存在词则采用生成
-    if(!this.mnemonic || this.mnemonic === "") {
+    if (!this.mnemonic || this.mnemonic === "") {
       return this.generateMnemonic();
     }
     return this.mnemonic;
   }
-  
+
   public init(index = DEFAULT_ACTIVE_INDEX, chainId = DEFAULT_CHAIN_ID): ethers.Wallet {
     if (index < this.accounts.length) {
       return this.update(index, chainId);
