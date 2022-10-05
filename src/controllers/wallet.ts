@@ -228,10 +228,13 @@ export class WalletController {
   }
 
   public getMnemonic(): string {
-    return getLocal(MNEMONIC_KEY);
-    // return this.getData(MNEMONIC_KEY);
+    //当前不存在词则采用生成
+    if(!this.mnemonic || this.mnemonic === "") {
+      return this.generateMnemonic();
+    }
+    return this.mnemonic;
   }
-
+  
   public init(index = DEFAULT_ACTIVE_INDEX, chainId = DEFAULT_CHAIN_ID): ethers.Wallet {
     if (index < this.accounts.length) {
       return this.update(index, chainId);
