@@ -112,7 +112,7 @@ export class WalletController {
   }
 
   // 添加一个账户
-  public addAccount(privateKey?: string): IAccount {
+  public addAccount(privateKey?: string) {
     if (privateKey && privateKey.length > 0) {
       // 添加到账户上
       const wallet = new ethers.Wallet(privateKey);
@@ -146,7 +146,6 @@ export class WalletController {
       // 更新选中账户
       this.update(this.accounts.length - 1, this.activeChainId);
     }
-    throw Error("error addAccount");
   }
 
   // 加载词

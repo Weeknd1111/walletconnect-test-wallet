@@ -220,10 +220,10 @@ class App extends React.Component<{}> {
 
   // 设置助记词
   public onSetMnemonic = async (mnemonic: string) => {
-    console.log(mnemonic);
-    getAppControllers().wallet.setMnemonic(mnemonic);
-    getAppControllers().wallet.addAccount();
     if (mnemonic) {
+      getAppControllers().wallet.setMnemonic(mnemonic);
+      getAppControllers().wallet.addAccount();
+      this.init();
       await this.setState({ hasMnemonic: true });
     }
   };
@@ -380,6 +380,15 @@ class App extends React.Component<{}> {
     await getAppConfig().events.update(this.state, this.bindedSetState);
   };
 
+  public updateAccounts = async () => {
+    const accounts = getAppControllers().wallet.getAccounts();
+    console.log(accounts);
+    await this.setState({
+      accounts,
+    });
+    // await this.updateSession({});
+  };
+
   public updateChain = async (chainId: number | string) => {
     await this.updateSession({ chainId: Number(chainId) });
   };
@@ -532,6 +541,7 @@ class App extends React.Component<{}> {
                         accounts={accounts}
                         updateAddress={this.updateAddress}
                         updateChain={this.updateChain}
+                        updateAccounts={this.updateAccounts}
                       />
                       <SActionsColumn>
                         <SButton onClick={this.toggleScanner}>{`Scan`}</SButton>
