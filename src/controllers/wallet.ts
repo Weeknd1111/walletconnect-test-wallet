@@ -113,16 +113,14 @@ export class WalletController {
 
   // 添加一个账户
   // 返回 成功=0,私钥不合法=1
-  public addAccount(privateKey?: string) : number {
+  public addAccount(privateKey?: string): number {
     if (typeof privateKey === "string") {
       //缺少0x的私钥
       if (privateKey.length === 64 && privateKey.match(/^[0-9a-f]*$/i)) {
         privateKey = "0x" + privateKey;
-      }
-      else if(privateKey.length === 66 && privateKey.match(/^[0-9a-fx]*$/i)) {
+      } else if (privateKey.length === 66 && privateKey.match(/^[0-9a-fx]*$/i)) {
         //正常私钥,不需要判断
-      }
-      else {
+      } else {
         return 1;
       }
       // 添加到账户上
@@ -141,7 +139,6 @@ export class WalletController {
       this.saveAccounts();
       // 更新选中账户
       this.update(this.accounts.length - 1, this.activeChainId);
-
     } else {
       const wallet = this.generateWallet(this.nextMnemonicPathIndex);
       const address: string = wallet.address;
