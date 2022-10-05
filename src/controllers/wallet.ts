@@ -7,6 +7,7 @@ import {
   MNEMONIC_KEY,
   DEFAULT_ACTIVE_INDEX,
   DEFAULT_CHAIN_ID,
+  DEFAULT_NEXT_MNEMONIC_PATH_INDEX,
   NEXT_MNEMONIC_PATH_INDEX,
   ACCOUNTS,
 } from "../constants/default";
@@ -36,7 +37,7 @@ export class WalletController {
   // 账户
   private accounts: IAccount[];
   // 下次使用的词索引
-  private nextMnemonicPathIndex = 0;
+  public nextMnemonicPathIndex: number = DEFAULT_NEXT_MNEMONIC_PATH_INDEX;
 
   constructor() {
     // this.path = this.getPath();
@@ -151,6 +152,7 @@ export class WalletController {
   // 加载词
   private loadMnemonic() {
     this.mnemonic = getLocal(MNEMONIC_KEY);
+    this.nextMnemonicPathIndex = this.getData(NEXT_MNEMONIC_PATH_INDEX);
   }
 
   // 加载账户
@@ -168,9 +170,10 @@ export class WalletController {
     this.mnemonic = value;
     this.init();
     setLocal(MNEMONIC_KEY, this.mnemonic);
+    // setLocal(NEXT_MNEMONIC_PATH_INDEX, this.nextMnemonicPathIndex);
   }
 
-  public getData(key: string): string {
+  public getData(key: string): any {
     let value = getLocal(key);
     if (!value) {
       switch (key) {
@@ -179,6 +182,9 @@ export class WalletController {
           break;
         case MNEMONIC_KEY:
           value = this.generateMnemonic();
+          break;
+        case NEXT_MNEMONIC_PATH_INDEX:
+          value = this.nextMnemonicPathIndex;
           break;
         default:
           throw new Error(`Unknown data key: ${key}`);

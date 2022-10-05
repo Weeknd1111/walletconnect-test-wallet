@@ -9,5 +9,6 @@ export const RINKEBY_CHAIN_ID = 4;
 export const GOERLI_CHAIN_ID = 5;
 export const DEFAULT_CHAIN_ID = RINKEBY_CHAIN_ID;
 
+export const DEFAULT_NEXT_MNEMONIC_PATH_INDEX = 0;
 export const NEXT_MNEMONIC_PATH_INDEX = "NEXT_MNEMONIC_PATH_INDEX";
 export const ACCOUNTS = "ACCOUNTS";
