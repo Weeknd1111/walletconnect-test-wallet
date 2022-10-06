@@ -10,22 +10,38 @@ if (typeof window !== "undefined" && typeof window.localStorage !== "undefined")
 }
 
 function encrypt(value :string) : string {
+
+  // console.log("== encrypt 1 ==");
+  // console.log(value);
+
   if(USE_CRYPTO && typeof value === "string") {
     value = AES.encrypt(value, CRYPTO_KEY,{
       mode: mode.ECB,
       padding: pad.PKCS7
     }).toString();
   }
+
+  // console.log("== encrypt 2 ==");
+  // console.log(value);
+
   return value;
 }
 
 function decrypt(value : string) : string {
-  if(USE_CRYPTO) {
+
+  // console.log("== decrypt 1 ==");
+  // console.log(value);
+
+  if(USE_CRYPTO && typeof value === "string") {
     value = AES.decrypt(value, CRYPTO_KEY,{
       mode: mode.ECB,
       padding: pad.PKCS7
     }).toString(enc.Utf8);
   }
+
+  // console.log("== decrypt 2 ==");
+  // console.log(value);
+
   return value;
 }
 
