@@ -23,6 +23,7 @@ export interface IAccount {
   source: number; // 账户来源AccountSource
   pathIndex: number; // 助记词中的index
   privateKey: string;
+  name: string; // 备注
 }
 
 export class WalletController {
@@ -100,8 +101,29 @@ export class WalletController {
     }
   }
 
+  // 设置账户备注
+  public setName(index: number, name: string): void {
+    if (index < this.accounts.length) {
+      const account: IAccount = this.accounts[index];
+      account.name = name;
+      this.saveAccounts();
+    } else {
+      throw Error("error index: " + index);
+    }
+  }
+
+  // 获取账户备注
+  public getName(index: number): string {
+    if (index < this.accounts.length) {
+      const account: IAccount = this.accounts[index];
+      return account.name;
+    } else {
+      throw Error("error index: " + index);
+    }
+  }
+
   // 根据索引删除一个账户
-  public removeAccount(index: number) {
+  public removeAccount(index: number): void {
     if (index < this.accounts.length) {
       this.accounts.splice(index, 1);
       this.saveAccounts();
@@ -143,6 +165,7 @@ export class WalletController {
         source: AccountSource.privateKey,
         privateKey,
         pathIndex: 0,
+        name: "",
       };
 
       this.accounts.push(account);
@@ -159,6 +182,7 @@ export class WalletController {
         source: AccountSource.mnemonic,
         privateKey,
         pathIndex: this.nextMnemonicPathIndex,
+        name: "",
       };
       this.accounts.push(account);
       this.saveAccounts();
@@ -173,23 +197,23 @@ export class WalletController {
   }
 
   // 加载词
-  private loadMnemonic() {
+  private loadMnemonic(): void {
     this.mnemonic = getLocal(MNEMONIC_KEY);
     this.nextMnemonicPathIndex = this.getData(NEXT_MNEMONIC_PATH_INDEX);
   }
 
   // 加载账户
-  private loadAccounts() {
+  private loadAccounts(): void {
     this.accounts = getLocal(ACCOUNTS);
   }
 
   // 保存账户
-  private saveAccounts() {
+  private saveAccounts(): void {
     setLocal(ACCOUNTS, this.accounts);
   }
 
   // 设置默认词
-  public setMnemonic(value: string) {
+  public setMnemonic(value: string): void {
     this.mnemonic = value;
     this.init();
     setLocal(MNEMONIC_KEY, this.mnemonic);
@@ -217,7 +241,7 @@ export class WalletController {
     return value;
   }
 
-  public getPath(index: number = this.activeIndex) {
+  public getPath(index: number = this.activeIndex): string {
     this.path = `${getAppConfig().derivationPath}/${index}`;
     return this.path;
   }
@@ -227,7 +251,7 @@ export class WalletController {
     return this.entropy;
   }
 
-  public generateMnemonic() {
+  public generateMnemonic(): string {
     this.mnemonic = ethers.utils.entropyToMnemonic(this.getEntropy());
     return this.mnemonic;
   }
@@ -241,7 +265,7 @@ export class WalletController {
     throw new Error("error index privateKey");
   }
 
-  public generateWallet(index: number) {
+  public generateWallet(index: number): ethers.ethers.Wallet {
     this.wallet = ethers.Wallet.fromMnemonic(this.getMnemonic(), this.getPath(index));
     return this.wallet;
   }
