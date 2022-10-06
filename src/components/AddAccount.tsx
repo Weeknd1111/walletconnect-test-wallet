@@ -19,7 +19,7 @@ class AddAccount extends React.Component<IAddAccountProps> {
       this.onAddAccount();
     }
     if (key === "2") {
-      getAppControllers().wallet.addAccount("ad888a3ba96ae8d2c96d7d692f734f6ebadda6e83ebfad190a582f0f34538208");
+      getAppControllers().wallet.addAccount("");
       this.onAddAccount();
     }
   };
