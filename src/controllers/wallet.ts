@@ -175,43 +175,24 @@ export class WalletController {
       // 更新选中账户
       this.update(this.accounts.length - 1, this.activeChainId);
     } else {
-      
-      const wallet = this.generateWallet(this.nextMnemonicPathIndex);
+      const wallet = this.oneGenerateWallet();
       const address: string = wallet.address;
       const privateKey: string = wallet.privateKey;
 
-      //词生成账户此前已经存在私钥导入情况
-      let improtedIndex = -1;
-      for (let i = 0; i < this.accounts.length; i++) {
-        const item: IAccount = this.accounts[i];
-        if (item.address === address) {
-          item.source = AccountSource.mnemonic;
-          item.pathIndex = this.nextMnemonicPathIndex;
-          improtedIndex = i;
-          break;
-        }
-      }
-
-      if (improtedIndex !== -1) {
-        const account: IAccount = {
-          address,
-          source: AccountSource.mnemonic,
-          privateKey,
-          pathIndex: this.nextMnemonicPathIndex,
-          name: this.newAccountName(),
-        };
-        this.accounts.push(account);
-      }
-
+      const account: IAccount = {
+        address,
+        source: AccountSource.mnemonic,
+        privateKey,
+        pathIndex: this.nextMnemonicPathIndex,
+        name: this.newAccountName(),
+      };
+      this.accounts.push(account);
       this.saveAccounts();
-
       // 存储当前词index
       this.nextMnemonicPathIndex++;
       setLocal(NEXT_MNEMONIC_PATH_INDEX, this.nextMnemonicPathIndex);
-
       // 更新选中账户
-      const index = improtedIndex !== -1 ? improtedIndex : this.accounts.length - 1;
-      this.update(index, this.activeChainId);
+      this.update(this.accounts.length - 1, this.activeChainId);
     }
   }
 
@@ -282,6 +263,27 @@ export class WalletController {
       return new ethers.Wallet(privateKey);
     }
     throw new Error("error index privateKey");
+  }
+
+  // 不断移动索引生成新的词账户,保证生成账户是唯一生成
+  private oneGenerateWallet(): ethers.ethers.Wallet {
+    while (true) {
+      const wallet = this.generateWallet(this.nextMnemonicPathIndex);
+      const address: string = wallet.address;
+      // 词生成账户此前已经存在私钥导入情况
+      let imported = false;
+      for (let i = 0; i < this.accounts.length; i++) {
+        const item: IAccount = this.accounts[i];
+        if (item.source === AccountSource.privateKey && item.address === address) {
+          this.nextMnemonicPathIndex++;
+          imported = true;
+          break;
+        }
+      }
+      if (!imported) {
+        return wallet;
+      }
+    }
   }
 
   public generateWallet(index: number): ethers.ethers.Wallet {
