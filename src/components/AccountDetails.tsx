@@ -52,6 +52,17 @@ class AccountDetails extends React.Component<IAccountDetailsProps> {
     ellipseLength: 0,
   };
 
+  // constructor(props: any) {
+  //   super(props);
+  //   this.state = {
+  //     accountsMap: [],
+  //     windowWidth: 0,
+  //     maxWidth: 468,
+  //     maxChar: 12,
+  //     ellipseLength: 0,
+  //   };
+  // }
+
   public componentDidMount = async () => {
     await this.init();
     await this.updateAccountsMap();
