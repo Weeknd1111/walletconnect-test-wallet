@@ -133,9 +133,12 @@ export class WalletController {
     }
   }
 
+  private newAccountName(): string {
+    return "Account " + this.accounts.length;
+  }
+
   // 添加一个账户
-  // 返回值:0=成功 1=私钥不合法 2=账户已经存在
-  public addAccount(privateKey?: string): number {
+  public addAccount(privateKey?: string): void {
     if (typeof privateKey === "string") {
       //缺少0x的私钥
       if (privateKey.length === 64 && privateKey.match(/^[0-9a-f]*$/i)) {
@@ -151,21 +154,19 @@ export class WalletController {
 
       //判断账户是否已经存在
       for (let i = 0; i < this.accounts.length; i++) {
-        const item = this.accounts[i];
+        const item: IAccount = this.accounts[i];
         // if (ethers.utils.getAddress(item.address) === ethers.utils.getAddress(address)) {
         if (item.address === address) {
-          return 2;
+          throw new Error("The private key is imported");
         }
       }
-
-      // console.log("addAccount privateKey: "+ privateKey + " , address: " + address);
 
       const account: IAccount = {
         address,
         source: AccountSource.privateKey,
         privateKey,
         pathIndex: 0,
-        name: "",
+        name: this.newAccountName(),
       };
 
       this.accounts.push(account);
@@ -174,26 +175,44 @@ export class WalletController {
       // 更新选中账户
       this.update(this.accounts.length - 1, this.activeChainId);
     } else {
+      
       const wallet = this.generateWallet(this.nextMnemonicPathIndex);
       const address: string = wallet.address;
       const privateKey: string = wallet.privateKey;
-      const account: IAccount = {
-        address,
-        source: AccountSource.mnemonic,
-        privateKey,
-        pathIndex: this.nextMnemonicPathIndex,
-        name: "",
-      };
-      this.accounts.push(account);
+
+      //词生成账户此前已经存在私钥导入情况
+      let improtedIndex = -1;
+      for (let i = 0; i < this.accounts.length; i++) {
+        const item: IAccount = this.accounts[i];
+        if (item.address === address) {
+          item.source = AccountSource.mnemonic;
+          item.pathIndex = this.nextMnemonicPathIndex;
+          improtedIndex = i;
+          break;
+        }
+      }
+
+      if (improtedIndex !== -1) {
+        const account: IAccount = {
+          address,
+          source: AccountSource.mnemonic,
+          privateKey,
+          pathIndex: this.nextMnemonicPathIndex,
+          name: this.newAccountName(),
+        };
+        this.accounts.push(account);
+      }
+
       this.saveAccounts();
+
       // 存储当前词index
       this.nextMnemonicPathIndex++;
       setLocal(NEXT_MNEMONIC_PATH_INDEX, this.nextMnemonicPathIndex);
-      // 更新选中账户
-      this.update(this.accounts.length - 1, this.activeChainId);
-    }
 
-    return 0;
+      // 更新选中账户
+      const index = improtedIndex !== -1 ? improtedIndex : this.accounts.length - 1;
+      this.update(index, this.activeChainId);
+    }
   }
 
   // 加载词
