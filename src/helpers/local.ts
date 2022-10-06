@@ -1,7 +1,7 @@
-import { AES } from 'crypto-ts';
+import { AES, enc, mode, pad } from "crypto-ts";
 
-const CRYPTO_KEY = "z=>NwD.C1kc9";
 const USE_CRYPTO = true;
+const CRYPTO_KEY = enc.Utf8.parse("z=>NwD.C1kc9");
 
 export let local: Storage;
 
@@ -9,17 +9,37 @@ if (typeof window !== "undefined" && typeof window.localStorage !== "undefined")
   local = window.localStorage;
 }
 
-function encrypt(value :string) : string {
-  if(USE_CRYPTO && typeof value === "string") {
-    value = AES.encrypt(value, CRYPTO_KEY).toString();
+function encrypt(value: string): string {
+  // console.log("== encrypt 1 ==");
+  // console.log(value);
+
+  if (USE_CRYPTO && typeof value === "string") {
+    value = AES.encrypt(value, CRYPTO_KEY, {
+      mode: mode.ECB,
+      padding: pad.PKCS7,
+    }).toString();
   }
+
+  // console.log("== encrypt 2 ==");
+  // console.log(value);
+
   return value;
 }
 
-function decrypt(value : string) : string {
-  if(USE_CRYPTO && value === "string") {
-    value = AES.decrypt(value, CRYPTO_KEY).toString();
+function decrypt(value: string): string {
+  // console.log("== decrypt 1 ==");
+  // console.log(value);
+
+  if (USE_CRYPTO && typeof value === "string") {
+    value = AES.decrypt(value, CRYPTO_KEY, {
+      mode: mode.ECB,
+      padding: pad.PKCS7,
+    }).toString(enc.Utf8);
   }
+
+  // console.log("== decrypt 2 ==");
+  // console.log(value);
+
   return value;
 }
 
