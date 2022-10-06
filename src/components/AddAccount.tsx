@@ -9,7 +9,7 @@ interface IAddAccountProps {
 };
 
 interface IAddAccountState {
-  isModalOpen: boolean;
+  isImportModalOpen: boolean;
   privateKey: string;
 }
 
@@ -19,19 +19,17 @@ class AddAccount extends React.Component<IAddAccountProps> {
   constructor(props: any) {
     super(props);
     this.state = {
-      isModalOpen: false,
+      isImportModalOpen: false,
       privateKey: "",
     };
   };
 
   public onClick: MenuProps["onClick"] = ({ key }) => {
     if (key === "1") {
-      getAppControllers().wallet.addAccount();
-      this.onAddAccount();
-      message.success("Creat account successfully");
+      this.creatAccount();
     }
     if (key === "2") {
-      this.showModal();
+      this.showImportAccountModal();
     }
   };
 
@@ -51,24 +49,37 @@ class AddAccount extends React.Component<IAddAccountProps> {
     />
   );
 
+  // 监听添加账户
   public onAddAccount = async () => {
     if (this.props.updateAccounts) {
       this.props.updateAccounts();
     }
   };
 
-  public setIsModalOpen = (isModalOpen: boolean) => {
+  // 创建账户
+  public creatAccount = async () => {
+    try {
+      await getAppControllers().wallet.addAccount();
+      this.onAddAccount();
+      message.success("Creat account successfully");
+    } catch (error) {
+      message.error(error.message);
+    }
+  };
+
+  public setIsImportModalOpen = (isImportModalOpen: boolean) => {
     this.setState({
-      isModalOpen,
+      isImportModalOpen,
     });
   };
 
-  public showModal = async () => {
+  public showImportAccountModal = async () => {
     await this.setState({ privateKey: "" });
-    this.setIsModalOpen(true);
+    this.setIsImportModalOpen(true);
   };
 
-  public handleOk = async () => {
+  // 确定导入账户
+  public handleImportAccountOk = async () => {
     const { privateKey } = this.state;
     if (!privateKey) {
       message.error("Please enter your private key string");
@@ -77,15 +88,15 @@ class AddAccount extends React.Component<IAddAccountProps> {
     try {
       await getAppControllers().wallet.addAccount(privateKey);
       this.onAddAccount();
-      this.setIsModalOpen(false);
+      this.setIsImportModalOpen(false);
       message.success("Import account successfully");
     } catch (error) {
       message.error(error.message);
     }
   };
 
-  public handleCancel = () => {
-    this.setIsModalOpen(false);
+  public handleImportAccountCancel = () => {
+    this.setIsImportModalOpen(false);
   };
 
   public onPrivateKeyChange = async (e: any) => {
@@ -97,7 +108,7 @@ class AddAccount extends React.Component<IAddAccountProps> {
   };
 
   public render() {
-    const { isModalOpen } = this.state;
+    const { isImportModalOpen } = this.state;
     return (
       <React.Fragment>
         <Dropdown overlay={this.menu} placement="bottomLeft">
@@ -108,7 +119,7 @@ class AddAccount extends React.Component<IAddAccountProps> {
             </Space>
           </a>
         </Dropdown>
-        <Modal title="Import Account" open={isModalOpen} onOk={this.handleOk} onCancel={this.handleCancel}>
+        <Modal title="Import Account" open={isImportModalOpen} onOk={this.handleImportAccountOk} onCancel={this.handleImportAccountCancel}>
           <Input onChange={this.onPrivateKeyChange} placeholder="Enter your private key string here" />
         </Modal>
       </React.Fragment>
