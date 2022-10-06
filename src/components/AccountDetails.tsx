@@ -1,5 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
+import { Button, Popconfirm } from "antd";
+import { UndoOutlined } from "@ant-design/icons";
 import Dropdown from "../components/Dropdown";
 import AddAccount from "./AddAccount";
 import { IChainData } from "../helpers/types";
@@ -15,6 +17,12 @@ const SSection = styled.div`
 const SAccountHead = styled.div`
   display: flex;
   justify-content: space-between;
+  align-items: center;
+`;
+
+const SAccountOperate = styled.div`
+  display: flex;
+  justify-content: flex-end;
   align-items: center;
 `;
 
@@ -41,6 +49,7 @@ interface IAccountDetailsProps {
   activeIndex: number;
   address: string;
   chainId: number;
+  resetAccount?: any;
 }
 
 interface IAccountDetailsState {
@@ -101,6 +110,12 @@ class AccountDetails extends React.Component<IAccountDetailsProps> {
     }
   };
 
+  public resetConfirm = async (e: React.MouseEvent<HTMLElement>) => {
+    if (this.props.resetAccount) {
+      await this.props.resetAccount();
+    }
+  };
+
   public render() {
     const { chains, chainId, address, activeIndex, updateAddress, updateChain } = this.props;
     const { accountsMap } = this.state;
@@ -109,7 +124,19 @@ class AccountDetails extends React.Component<IAccountDetailsProps> {
         <SSection>
           <SAccountHead>
             <h6>{"Account"}</h6>
-            <AddAccount updateAccounts={this.onUpdateAccounts} />
+            <SAccountOperate>
+              <AddAccount updateAccounts={this.onUpdateAccounts} />
+              <Popconfirm
+                title="Are you sure to reset all account?"
+                onConfirm={this.resetConfirm}
+                okText="Yes"
+                cancelText="No"
+              >
+                <Button type="text" size="small" danger icon={<UndoOutlined />}>
+                  {"Reset Account"}
+                </Button>
+              </Popconfirm>
+            </SAccountOperate>
           </SAccountHead>
           <SAddressDropdownWrapper>
             <SBlockie size={40} address={address} />

@@ -216,6 +216,8 @@ class App extends React.Component<{}> {
     if (mnemonic) {
       await this.setState({ hasMnemonic: true });
       this.init();
+    } else {
+      await this.setState({ hasMnemonic: false });
     }
   };
 
@@ -290,7 +292,12 @@ class App extends React.Component<{}> {
 
   public resetApp = async () => {
     await this.setState({ ...INITIAL_STATE });
-    this.init();
+    this.initMnemonic();
+  };
+
+  public resetAccount = async () => {
+    await getAppControllers().wallet.resetWallet();
+    window.location.reload();
   };
 
   public subscribeToEvents = () => {
@@ -368,7 +375,8 @@ class App extends React.Component<{}> {
   public updateSession = async (sessionParams: { chainId?: number; activeIndex?: number }) => {
     const { connector, chainId, accounts, activeIndex } = this.state;
     const newChainId = sessionParams.chainId || chainId;
-    const newActiveIndex = typeof(sessionParams.activeIndex) === "number" ? sessionParams.activeIndex : activeIndex;
+    const newActiveIndex =
+      typeof sessionParams.activeIndex === "number" ? sessionParams.activeIndex : activeIndex;
     const address = accounts[newActiveIndex];
     if (connector) {
       connector.updateSession({
@@ -548,6 +556,7 @@ class App extends React.Component<{}> {
                         updateAddress={this.updateAddress}
                         updateChain={this.updateChain}
                         updateAccounts={this.updateAccounts}
+                        resetAccount={this.resetAccount}
                       />
                       <SActionsColumn>
                         <SButton onClick={this.toggleScanner}>{`Scan`}</SButton>

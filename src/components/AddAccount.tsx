@@ -1,8 +1,14 @@
 import * as React from "react";
+import styled from "styled-components";
 import { PlusSquareOutlined } from "@ant-design/icons";
 import { Dropdown, Space, Menu, Modal, Input, message } from "antd";
 import type { MenuProps } from "antd";
 import { getAppControllers } from "../controllers";
+
+const SDropdown = styled(Dropdown)`
+  font-size: 14px;
+  margin-right: 5px;
+`;
 
 interface IAddAccountProps {
   updateAccounts?: any;
@@ -111,14 +117,14 @@ class AddAccount extends React.Component<IAddAccountProps> {
     const { isImportModalOpen } = this.state;
     return (
       <React.Fragment>
-        <Dropdown overlay={this.menu} placement="bottomLeft">
+        <SDropdown overlay={this.menu} placement="bottomLeft">
           <a onClick={e => e.preventDefault()}>
             <Space>
               <PlusSquareOutlined />
               {"Add Account"}
             </Space>
           </a>
-        </Dropdown>
+        </SDropdown>
         <Modal title="Import Account" open={isImportModalOpen} onOk={this.handleImportAccountOk} onCancel={this.handleImportAccountCancel}>
           <Input onChange={this.onPrivateKeyChange} placeholder="Enter your private key string here" />
         </Modal>

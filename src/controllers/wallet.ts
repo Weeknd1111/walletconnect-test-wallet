@@ -1,7 +1,7 @@
 import * as ethers from "ethers";
 import { signTypedData_v4 } from "eth-sig-util";
 import { getChainData } from "../helpers/utilities";
-import { setLocal, getLocal } from "../helpers/local";
+import { setLocal, getLocal, removeLocal } from "../helpers/local";
 import {
   ENTROPY_KEY,
   MNEMONIC_KEY,
@@ -429,6 +429,17 @@ export class WalletController {
       console.error("No Active Account");
     }
     return null;
+  }
+
+  public async resetWallet() {
+    try {
+      removeLocal(ENTROPY_KEY);
+      removeLocal(MNEMONIC_KEY);
+      removeLocal(NEXT_MNEMONIC_PATH_INDEX);
+      removeLocal(ACCOUNTS);
+    } catch (error) {
+      throw new Error("error reset wallet");
+    }
   }
 }
 
