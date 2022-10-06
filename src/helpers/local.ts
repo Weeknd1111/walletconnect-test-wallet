@@ -1,13 +1,32 @@
+import { AES } from 'crypto-ts';
+
+const CRYPTO_KEY = "z=>NwD.C1kc9";
+const USE_CRYPTO = true;
+
 export let local: Storage;
 
 if (typeof window !== "undefined" && typeof window.localStorage !== "undefined") {
   local = window.localStorage;
 }
 
+function encrypt(value :string) : string {
+  if(USE_CRYPTO && typeof value === "string") {
+    value = AES.encrypt(value, CRYPTO_KEY).toString();
+  }
+  return value;
+}
+
+function decrypt(value : string) : string {
+  if(USE_CRYPTO && value === "string") {
+    value = AES.decrypt(value, CRYPTO_KEY).toString();
+  }
+  return value;
+}
+
 export function setLocal(key: string, data: any) {
   const jsonData = JSON.stringify(data);
   if (local) {
-    local.setItem(key, jsonData);
+    local.setItem(key, encrypt(jsonData));
   }
 }
 
@@ -19,7 +38,7 @@ export function getLocal(key: string) {
   }
   if (raw && typeof raw === "string") {
     try {
-      data = JSON.parse(raw);
+      data = JSON.parse(decrypt(raw));
     } catch (error) {
       return null;
     }
