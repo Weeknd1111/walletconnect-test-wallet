@@ -6,6 +6,7 @@ import { IChainData } from "../helpers/types";
 import { ellipseAddress, getViewportDimensions } from "../helpers/utilities";
 import { responsive } from "../styles";
 import Blockie from "./Blockie";
+import { getAppControllers } from "../controllers";
 
 const SSection = styled.div`
   width: 100%;
@@ -42,63 +43,52 @@ interface IAccountDetailsProps {
   chainId: number;
 }
 
-// const AccountDetails = (props: IAccountDetailsProps) => {
-class AccountDetails extends React.Component<IAccountDetailsProps> {
-  public state = {
-    accountsMap: [],
-    windowWidth: 0,
-    maxWidth: 468,
-    maxChar: 12,
-    ellipseLength: 0,
-  };
+interface IAccountDetailsState {
+  accountsMap: any[] | object;
+  windowWidth: number;
+  maxWidth: number;
+  maxChar: number;
+  ellipseLength: number;
+}
 
-  // constructor(props: any) {
-  //   super(props);
-  //   this.state = {
-  //     accountsMap: [],
-  //     windowWidth: 0,
-  //     maxWidth: 468,
-  //     maxChar: 12,
-  //     ellipseLength: 0,
-  //   };
-  // }
+class AccountDetails extends React.Component<IAccountDetailsProps> {
+  public state: IAccountDetailsState;
+
+  constructor(props: any) {
+    super(props);
+    const windowWidth = getViewportDimensions().x;
+    const maxWidth = 468;
+    const maxChar = 12;
+    this.state = {
+      accountsMap: [],
+      windowWidth,
+      maxWidth,
+      maxChar,
+      ellipseLength:
+        windowWidth > maxWidth ? maxChar : Math.floor(windowWidth * (maxChar / maxWidth)),
+    };
+  }
 
   public componentDidMount = async () => {
-    await this.init();
     await this.updateAccountsMap();
   };
 
-  public componentWillReceiveProps() {
-    this.updateAccountsMap();
-  }
-
-  public init = async () => {
-    try {
-      const { maxWidth, maxChar } = this.state;
-      const windowWidth = getViewportDimensions().x;
-      const ellipseLength =
-        windowWidth > maxWidth ? maxChar : Math.floor(windowWidth * (maxChar / maxWidth));
-      await this.setState({
-        windowWidth,
-        ellipseLength,
-      });
-      return;
-    } catch (error) {
-      throw error;
-    }
+  public componentWillReceiveProps = async () => {
+    await this.updateAccountsMap();
   };
 
   public updateAccountsMap = async () => {
     try {
       const { ellipseLength } = this.state;
-      const accountsMap = this.props.accounts.map((addr: string, index: number) => ({
+      const accounts = getAppControllers().wallet.getAccounts();
+      const accountsMap = accounts.map((addr: string, index: number) => ({
         index,
         display_address: ellipseAddress(addr, ellipseLength),
       }));
       await this.setState({
         accountsMap,
       });
-      console.log(accountsMap);
+      this.forceUpdate(); // 强制更新组件视图
       return;
     } catch (error) {
       throw error;
@@ -107,7 +97,7 @@ class AccountDetails extends React.Component<IAccountDetailsProps> {
 
   public onUpdateAccounts = async () => {
     if (this.props.updateAccounts) {
-      this.props.updateAccounts();
+      await this.props.updateAccounts();
     }
   };
 

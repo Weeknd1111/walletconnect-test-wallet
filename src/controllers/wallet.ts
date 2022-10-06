@@ -121,7 +121,7 @@ export class WalletController {
       } else if (privateKey.length === 66 && privateKey.match(/^[0-9a-fx]*$/i)) {
         //正常私钥,不需要判断
       } else {
-        return 1;
+        throw new Error("The private key is illegal");
       }
       // 添加到账户上
       const wallet = new ethers.Wallet(privateKey);
@@ -241,9 +241,9 @@ export class WalletController {
 
   public getMnemonic(): string {
     //当前不存在词则采用生成
-    if (!this.mnemonic || this.mnemonic === "") {
-      return this.generateMnemonic();
-    }
+    // if (!this.mnemonic || this.mnemonic === "") {
+    //   return this.generateMnemonic();
+    // }
     return this.mnemonic;
   }
 

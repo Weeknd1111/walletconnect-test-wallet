@@ -47,9 +47,7 @@ class SceretPhrase extends React.Component<IMnemonicProps> {
   }
 
   public init = async () => {
-    console.log("init");
     const { mnemonic } = this.props;
-    console.log(mnemonic);
     this.setState({ mnemonic });
   };
 
@@ -66,7 +64,7 @@ class SceretPhrase extends React.Component<IMnemonicProps> {
   public onSetMnemonic = async () => {
     const { mnemonic } = this.state;
     if (this.props.onSetMnemonic) {
-      this.props.onSetMnemonic(mnemonic);
+      await this.props.onSetMnemonic(mnemonic);
     }
   };
 

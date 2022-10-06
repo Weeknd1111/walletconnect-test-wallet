@@ -1,6 +1,7 @@
 import * as React from "react";
 import "./App.css";
 import styled from "styled-components";
+import { message } from "antd";
 import WalletConnect from "@walletconnect/client";
 import Button from "./components/Button";
 import Card from "./components/Card";
@@ -220,11 +221,17 @@ class App extends React.Component<{}> {
 
   // 设置助记词
   public onSetMnemonic = async (mnemonic: string) => {
-    if (mnemonic) {
-      getAppControllers().wallet.setMnemonic(mnemonic);
-      getAppControllers().wallet.addAccount();
+    if (!mnemonic) {
+      message.error("Please enter your secret recovery phrase string");
+      return;
+    }
+    try {
+      await getAppControllers().wallet.setMnemonic(mnemonic);
+      await getAppControllers().wallet.addAccount();
       this.init();
       await this.setState({ hasMnemonic: true });
+    } catch (error) {
+      message.error(error.message);
     }
   };
 
@@ -382,7 +389,6 @@ class App extends React.Component<{}> {
 
   public updateAccounts = async () => {
     const accounts = getAppControllers().wallet.getAccounts();
-    console.log(accounts);
     await this.setState({
       accounts,
     });

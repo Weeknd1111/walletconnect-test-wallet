@@ -79,16 +79,23 @@ class Dropdown extends React.Component<IDropdownProps, IDropdownState> {
   };
 
   public componentDidMount() {
-    const { otherKeys, optionsDict } = this.parseKeys(this.props);
-    this.setState({ otherKeys, optionsDict });
+    this.updateOptions();
+  }
+
+  public componentWillReceiveProps(prevProps: IDropdownProps) {
+    this.updateOptions();
   }
 
   public componentDidUpdate(prevProps: IDropdownProps) {
     if (prevProps.selected !== this.props.selected) {
-      const { otherKeys, optionsDict } = this.parseKeys(this.props);
-      this.setState({ otherKeys, optionsDict });
+      this.updateOptions();
     }
   }
+
+  public updateOptions = async () => {
+    const { otherKeys, optionsDict } = this.parseKeys(this.props);
+    await this.setState({ otherKeys, optionsDict });
+  };
 
   public parseKeys = (props: {
     targetKey: number | string;
