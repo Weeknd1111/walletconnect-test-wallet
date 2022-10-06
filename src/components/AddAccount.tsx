@@ -2,7 +2,6 @@ import * as React from "react";
 import { PlusSquareOutlined } from "@ant-design/icons";
 import { Dropdown, Space, Menu, Modal, Input, message } from "antd";
 import type { MenuProps } from "antd";
-// import styled from "styled-components";
 import { getAppControllers } from "../controllers";
 
 interface IAddAccountProps {

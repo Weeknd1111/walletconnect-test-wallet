@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
-// import { colors } from "../styles";
+import { Upload, message } from "antd";
 import Input from "./Input";
 import Button from "./Button";
 
@@ -27,10 +27,19 @@ const SButtonInline = styled(Button)`
   margin-left: 10px;
 `;
 
-const SButtonBlock = styled(Button)`
-  width: 100%;
-  height: 40px;
-`;
+// const SButtonBlock = styled(Button)`
+//   width: 100%;
+//   height: 40px;
+// `;
+
+// const SUpload = styled(Upload)`
+//   .ant-upload-select {
+//     display: block;
+//   }
+//   .ant-upload-list {
+//     display: none;
+//   }
+// `;
 
 interface IMnemonicProps {
   mnemonic: string;
@@ -73,6 +82,19 @@ class SceretPhrase extends React.Component<IMnemonicProps> {
     console.log("onImport");
   };
 
+  public uploadProps = {
+    beforeUpload: (file: { type: string; name: any }) => {
+      const isPNG = file.type === "json";
+      if (!isPNG) {
+        message.error(`${file.name} is not a png file`);
+      }
+      return isPNG || Upload.LIST_IGNORE;
+    },
+    onChange: (info: { fileList: any }) => {
+      console.log(info.fileList);
+    },
+  };
+
   public render() {
     return (
       <SMnemonic>
@@ -81,7 +103,9 @@ class SceretPhrase extends React.Component<IMnemonicProps> {
           <SInput onChange={this.onInputPhrase} placeholder={"Enter Secret Recovery Phrase"} />
           <SButtonInline onClick={this.onSetMnemonic}>{`SET`}</SButtonInline>
         </SField>
-        <SButtonBlock onClick={this.onImport}>{`IMPORT`}</SButtonBlock>
+        {/* <SUpload {...this.uploadProps}>
+          <SButtonBlock onClick={this.onImport}>{`IMPORT`}</SButtonBlock>
+        </SUpload> */}
       </SMnemonic>
     );
   }
