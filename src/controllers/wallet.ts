@@ -112,7 +112,7 @@ export class WalletController {
   }
 
   // 添加一个账户
-  // 返回 成功=0,私钥不合法=1
+  // 返回值:0=成功 1=私钥不合法 2=账户已经存在
   public addAccount(privateKey?: string): number {
     if (typeof privateKey === "string") {
       //缺少0x的私钥
@@ -127,6 +127,15 @@ export class WalletController {
       const wallet = new ethers.Wallet(privateKey);
       const address: string = wallet.address;
 
+      //判断账户是否已经存在
+      for (let i = 0; i < this.accounts.length; i++) {
+        const item = this.accounts[i];
+        // if (ethers.utils.getAddress(item.address) === ethers.utils.getAddress(address)) {
+        if (item.address === address) {
+          return 2;
+        }
+      }
+
       // console.log("addAccount privateKey: "+ privateKey + " , address: " + address);
 
       const account: IAccount = {
@@ -135,8 +144,10 @@ export class WalletController {
         privateKey,
         pathIndex: 0,
       };
+
       this.accounts.push(account);
       this.saveAccounts();
+
       // 更新选中账户
       this.update(this.accounts.length - 1, this.activeChainId);
     } else {
