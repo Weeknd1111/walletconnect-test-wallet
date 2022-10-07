@@ -9,7 +9,7 @@ import {
   DEFAULT_CHAIN_ID,
   DEFAULT_NEXT_MNEMONIC_PATH_INDEX,
   NEXT_MNEMONIC_PATH_INDEX,
-  ACCOUNTS,
+  SAVEDS,
 } from "../constants/default";
 import { getAppConfig } from "../config";
 
@@ -36,24 +36,16 @@ export class WalletController {
   public activeChainId: number = DEFAULT_CHAIN_ID;
 
   // 账户
-  private accounts: IAccount[];
+  private accounts: IAccount[] = [];
   // 下次使用的词索引
   public nextMnemonicPathIndex: number = DEFAULT_NEXT_MNEMONIC_PATH_INDEX;
+  // 保存的账户
+  private saveds: string[];
 
   constructor() {
-    // this.path = this.getPath();
-    // this.entropy = this.getEntropy();
-    // this.mnemonic = this.getMnemonic();
-    // console.log(this.mnemonic);
-    // this.wallet = this.init();
-
+    this.loadSaveds();
     this.loadAccounts();
     this.loadMnemonic();
-
-    if (!this.accounts) {
-      this.accounts = [];
-    }
-
     if (this.accounts.length > 0) {
       this.wallet = this.init();
     }
@@ -106,7 +98,7 @@ export class WalletController {
     if (index < this.accounts.length) {
       const account: IAccount = this.accounts[index];
       account.name = name;
-      this.saveAccounts();
+      this.saveAccount(account);
     } else {
       throw Error("error index: " + index);
     }
@@ -118,7 +110,7 @@ export class WalletController {
       const account: IAccount = this.accounts[index];
       return account.name;
     } else {
-      throw Error("error index: " + index);
+      throw Error("Error index: " + index);
     }
   }
 
@@ -126,10 +118,11 @@ export class WalletController {
   public removeAccount(index: number): void {
     if (index < this.accounts.length) {
       this.accounts.splice(index, 1);
-      this.saveAccounts();
-      // TODO 更新当前选中
+      removeLocal(this.saveds[index]);
+      this.saveds.splice(index, 1);
+      setLocal(SAVEDS, this.saveds);
     } else {
-      throw Error("error index: " + index);
+      throw Error("Error index: " + index);
     }
   }
 
@@ -168,12 +161,14 @@ export class WalletController {
         pathIndex: 0,
         name: this.newAccountName(),
       };
-
+      // 保存账户
+      this.saveAccount(account);
       this.accounts.push(account);
-      this.saveAccounts();
 
-      // 更新选中账户
-      this.update(this.accounts.length - 1, this.activeChainId);
+      // 保存账户地址
+      this.saveds.push(account.address);
+      setLocal(SAVEDS, this.saveds);
+
     } else {
       const wallet = this.oneGenerateWallet();
       const address: string = wallet.address;
@@ -186,14 +181,21 @@ export class WalletController {
         pathIndex: this.nextMnemonicPathIndex,
         name: this.newAccountName(),
       };
+      // 保存账户
+      this.saveAccount(account);
       this.accounts.push(account);
-      this.saveAccounts();
+      // 保存账户地址
+      this.saveds.push(account.address);
+      setLocal(SAVEDS, this.saveds);
+
       // 存储当前词index
       this.nextMnemonicPathIndex++;
       setLocal(NEXT_MNEMONIC_PATH_INDEX, this.nextMnemonicPathIndex);
-      // 更新选中账户
-      this.update(this.accounts.length - 1, this.activeChainId);
     }
+  }
+
+  private loadSaveds(): void {
+    this.saveds = getLocal(SAVEDS) || [];
   }
 
   // 加载词
@@ -204,20 +206,23 @@ export class WalletController {
 
   // 加载账户
   private loadAccounts(): void {
-    this.accounts = getLocal(ACCOUNTS);
+    for (let i = 0; i < this.saveds.length; i++) {
+      this.accounts.push(getLocal(this.saveds[i]));
+    }
   }
 
-  // 保存账户
-  private saveAccounts(): void {
-    setLocal(ACCOUNTS, this.accounts);
+  // 保存单个账户
+  private saveAccount(account: IAccount) {
+    setLocal(account.address, account);
   }
 
   // 设置默认词
   public setMnemonic(value: string): void {
     this.mnemonic = value;
-    this.init();
+    this.nextMnemonicPathIndex = DEFAULT_NEXT_MNEMONIC_PATH_INDEX;
+
+    setLocal(NEXT_MNEMONIC_PATH_INDEX, this.nextMnemonicPathIndex);
     setLocal(MNEMONIC_KEY, this.mnemonic);
-    // setLocal(NEXT_MNEMONIC_PATH_INDEX, this.nextMnemonicPathIndex);
   }
 
   public getData(key: string): any {
@@ -262,7 +267,7 @@ export class WalletController {
     if (privateKey !== "") {
       return new ethers.Wallet(privateKey);
     }
-    throw new Error("error index privateKey");
+    throw Error("Error index: " + index);
   }
 
   // 不断移动索引生成新的词账户,保证生成账户是唯一生成
@@ -322,6 +327,9 @@ export class WalletController {
       const wallet = this.getIndexWallet(index);
       const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
       this.wallet = wallet.connect(provider);
+    }
+    else {
+      throw Error("Error index: " + index);
     }
     if (!firstUpdate) {
       // update another controller if necessary here
@@ -433,10 +441,21 @@ export class WalletController {
 
   public async resetWallet() {
     try {
+
+      this.activeIndex = DEFAULT_ACTIVE_INDEX;
+      this.activeChainId = DEFAULT_CHAIN_ID;
+      this.nextMnemonicPathIndex = DEFAULT_NEXT_MNEMONIC_PATH_INDEX;
+
+      for (let i = 0; i < this.saveds.length; i++) {
+        removeLocal(this.saveds[i]);
+      }
+      this.saveds = [];
+      removeLocal(SAVEDS);
+
+      this.accounts = [];
       removeLocal(ENTROPY_KEY);
       removeLocal(MNEMONIC_KEY);
       removeLocal(NEXT_MNEMONIC_PATH_INDEX);
-      removeLocal(ACCOUNTS);
     } catch (error) {
       throw new Error("error reset wallet");
     }

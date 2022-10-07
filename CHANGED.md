@@ -13,3 +13,8 @@ src/controllers/wallet.ts
 - 账户备注 IAccount.name
 - 设置备注 setName(index: number, name: string): void
 - 获取账户备注 getName(index: number): string
+
+## 20221007
+1. src/controllers/wallet.ts
+- 更新账户储存，减少系列化
+2. act oyster page lounge engage evil isolate current winter two woman panda
