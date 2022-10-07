@@ -18,6 +18,13 @@ export const AccountSource = {
   privateKey: 1, // 私钥
 };
 
+// 存储资源配置
+export interface IResConfig {
+  mnemonic: string;
+  accounts: IAccount[];
+}
+
+// 账户
 export interface IAccount {
   address: string;
   source: number; // 账户来源AccountSource
@@ -194,6 +201,7 @@ export class WalletController {
     }
   }
 
+  // 加载存储的账户
   private loadSaveds(): void {
     this.saveds = getLocal(SAVEDS) || [];
   }
@@ -302,9 +310,9 @@ export class WalletController {
 
   public getMnemonic(): string {
     //当前不存在词则采用生成
-    // if (!this.mnemonic || this.mnemonic === "") {
-    //   return this.generateMnemonic();
-    // }
+    if (!this.mnemonic || this.mnemonic === "") {
+      return this.generateMnemonic();
+    }
     return this.mnemonic;
   }
 
@@ -335,6 +343,43 @@ export class WalletController {
       // update another controller if necessary here
     }
     return this.wallet;
+  }
+
+  // 导出存储数据
+  public exportConfig(): string {
+    const resConf: IResConfig = {
+      mnemonic: this.mnemonic,
+      accounts: this.accounts
+    }
+    return JSON.stringify(resConf);
+  }
+
+  // 导入存储配置
+  public importConfig(value: string): void {
+    this.resetWallet();
+
+    const resConf: IResConfig = JSON.parse(value);
+    this.mnemonic = resConf.mnemonic;
+    setLocal(MNEMONIC_KEY, this.mnemonic);
+
+    this.accounts = resConf.accounts;
+    this.saveds = [];
+    
+    this.nextMnemonicPathIndex = DEFAULT_NEXT_MNEMONIC_PATH_INDEX;
+    for (let i = 0; i < this.accounts.length; i++) {
+      const account: IAccount = this.accounts[i];
+      this.saveds.push(account.address);
+      this.saveAccount(account);
+      // 推算词索引
+      if (account.source === AccountSource.mnemonic) {
+        if (this.nextMnemonicPathIndex <= account.pathIndex) {
+          this.nextMnemonicPathIndex = account.pathIndex + 1;
+        }
+      }
+    }
+    
+    setLocal(SAVEDS, this.saveds);
+    setLocal(NEXT_MNEMONIC_PATH_INDEX, this.nextMnemonicPathIndex);
   }
 
   public async populateTransaction(transaction: any) {
@@ -439,19 +484,16 @@ export class WalletController {
     return null;
   }
 
-  public async resetWallet() {
+  public resetWallet() {
     try {
-
       this.activeIndex = DEFAULT_ACTIVE_INDEX;
       this.activeChainId = DEFAULT_CHAIN_ID;
       this.nextMnemonicPathIndex = DEFAULT_NEXT_MNEMONIC_PATH_INDEX;
-
       for (let i = 0; i < this.saveds.length; i++) {
         removeLocal(this.saveds[i]);
       }
       this.saveds = [];
       removeLocal(SAVEDS);
-
       this.accounts = [];
       removeLocal(ENTROPY_KEY);
       removeLocal(MNEMONIC_KEY);

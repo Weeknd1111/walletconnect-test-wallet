@@ -17,4 +17,8 @@ src/controllers/wallet.ts
 ## 20221007
 1. src/controllers/wallet.ts
 - 更新账户储存，减少系列化
-2. act oyster page lounge engage evil isolate current winter two woman panda
+2. 测试助记词
+- act oyster page lounge engage evil isolate current winter two woman panda
+3. src/controllers/wallet.ts 增加导入导出接口
+- 导出数据 exportConfig(): string
+- 导入数据 importConfig(value: string): void
