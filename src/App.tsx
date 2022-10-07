@@ -397,7 +397,7 @@ class App extends React.Component<{}> {
 
   public onAddAccount = async () => {
     await this.updateAccounts();
-    const lastIndex : number = getAppControllers().wallet.accounts.length -1;
+    const lastIndex: number = getAppControllers().wallet.accounts.length - 1;
     await this.updateAddress(lastIndex);
   };
 

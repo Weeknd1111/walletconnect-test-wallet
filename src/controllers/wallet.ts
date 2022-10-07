@@ -133,12 +133,12 @@ export class WalletController {
     }
   }
 
-  private newAccountName(): string {
-    return "Account " + this.accounts.length;
+  public newAccountName(): string {
+    return "Account " + (this.accounts.length + 1);
   }
 
   // 添加一个账户
-  public addAccount(privateKey?: string): void {
+  public addAccount(accountName?: string, privateKey?: string): void {
     if (typeof privateKey === "string") {
       //缺少0x的私钥
       if (privateKey.length === 64 && privateKey.match(/^[0-9a-f]*$/i)) {
@@ -166,7 +166,7 @@ export class WalletController {
         source: AccountSource.privateKey,
         privateKey,
         pathIndex: 0,
-        name: this.newAccountName(),
+        name: accountName || this.newAccountName(),
       };
       // 保存账户
       this.saveAccount(account);
@@ -175,7 +175,6 @@ export class WalletController {
       // 保存账户地址
       this.saveds.push(account.address);
       setLocal(SAVEDS, this.saveds);
-
     } else {
       const wallet = this.oneGenerateWallet();
       const address: string = wallet.address;
@@ -186,7 +185,7 @@ export class WalletController {
         source: AccountSource.mnemonic,
         privateKey,
         pathIndex: this.nextMnemonicPathIndex,
-        name: this.newAccountName(),
+        name: accountName || this.newAccountName(),
       };
       // 保存账户
       this.saveAccount(account);
@@ -310,9 +309,9 @@ export class WalletController {
 
   public getMnemonic(): string {
     //当前不存在词则采用生成
-    if (!this.mnemonic || this.mnemonic === "") {
-      return this.generateMnemonic();
-    }
+    // if (!this.mnemonic || this.mnemonic === "") {
+    //   return this.generateMnemonic();
+    // }
     return this.mnemonic;
   }
 
@@ -335,8 +334,7 @@ export class WalletController {
       const wallet = this.getIndexWallet(index);
       const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
       this.wallet = wallet.connect(provider);
-    }
-    else {
+    } else {
       throw Error("Error index: " + index);
     }
     if (!firstUpdate) {
@@ -349,8 +347,8 @@ export class WalletController {
   public exportConfig(): string {
     const resConf: IResConfig = {
       mnemonic: this.mnemonic,
-      accounts: this.accounts
-    }
+      accounts: this.accounts,
+    };
     return JSON.stringify(resConf);
   }
 
@@ -364,7 +362,7 @@ export class WalletController {
 
     this.accounts = resConf.accounts;
     this.saveds = [];
-    
+
     this.nextMnemonicPathIndex = DEFAULT_NEXT_MNEMONIC_PATH_INDEX;
     for (let i = 0; i < this.accounts.length; i++) {
       const account: IAccount = this.accounts[i];
@@ -377,7 +375,7 @@ export class WalletController {
         }
       }
     }
-    
+
     setLocal(SAVEDS, this.saveds);
     setLocal(NEXT_MNEMONIC_PATH_INDEX, this.nextMnemonicPathIndex);
   }
