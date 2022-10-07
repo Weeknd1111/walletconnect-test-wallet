@@ -15,10 +15,10 @@ src/controllers/wallet.ts
 - 获取账户备注 getName(index: number): string
 
 ## 20221007
-1. src/controllers/wallet.ts
-- 更新账户储存，减少系列化
+1. 更新账户储存，减少序列化
 2. 测试助记词
 - act oyster page lounge engage evil isolate current winter two woman panda
-3. src/controllers/wallet.ts 增加导入导出接口
-- 导出数据 exportConfig(): string
-- 导入数据 importConfig(value: string): void
+3. 增加导入导出接口
+- src/controllers/wallet.ts 
+    - 导出数据 exportConfig(): string
+    - 导入数据 importConfig(value: string): void
