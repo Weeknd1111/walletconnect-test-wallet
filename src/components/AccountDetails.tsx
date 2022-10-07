@@ -44,7 +44,7 @@ interface IAccountDetailsProps {
   chains: IChainData[];
   updateAddress?: any;
   updateChain?: any;
-  updateAccounts?: any;
+  onAddAccount?: any;
   accounts: string[];
   activeIndex: number;
   address: string;
@@ -104,9 +104,9 @@ class AccountDetails extends React.Component<IAccountDetailsProps> {
     }
   };
 
-  public onUpdateAccounts = async () => {
-    if (this.props.updateAccounts) {
-      await this.props.updateAccounts();
+  public onAddAccount = async () => {
+    if (this.props.onAddAccount) {
+      await this.props.onAddAccount();
     }
   };
 
@@ -125,7 +125,7 @@ class AccountDetails extends React.Component<IAccountDetailsProps> {
           <SAccountHead>
             <h6>{"Account"}</h6>
             <SAccountOperate>
-              <AddAccount updateAccounts={this.onUpdateAccounts} />
+              <AddAccount onAddAccount={this.onAddAccount} />
               <Popconfirm
                 title="Are you sure to reset all account?"
                 onConfirm={this.resetConfirm}

@@ -36,7 +36,7 @@ export class WalletController {
   public activeChainId: number = DEFAULT_CHAIN_ID;
 
   // 账户
-  private accounts: IAccount[] = [];
+  public accounts: IAccount[] = [];
   // 下次使用的词索引
   public nextMnemonicPathIndex: number = DEFAULT_NEXT_MNEMONIC_PATH_INDEX;
   // 保存的账户

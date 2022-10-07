@@ -11,7 +11,7 @@ const SDropdown = styled(Dropdown)`
 `;
 
 interface IAddAccountProps {
-  updateAccounts?: any;
+  onAddAccount?: any;
 };
 
 interface IAddAccountState {
@@ -57,8 +57,8 @@ class AddAccount extends React.Component<IAddAccountProps> {
 
   // 监听添加账户
   public onAddAccount = async () => {
-    if (this.props.updateAccounts) {
-      this.props.updateAccounts();
+    if (this.props.onAddAccount) {
+      this.props.onAddAccount();
     }
   };
 

@@ -395,6 +395,12 @@ class App extends React.Component<{}> {
     await getAppConfig().events.update(this.state, this.bindedSetState);
   };
 
+  public onAddAccount = async () => {
+    await this.updateAccounts();
+    const lastIndex : number = getAppControllers().wallet.accounts.length -1;
+    await this.updateAddress(lastIndex);
+  };
+
   public updateAccounts = async () => {
     const accounts = getAppControllers().wallet.getAccounts();
     await this.setState({
@@ -555,7 +561,7 @@ class App extends React.Component<{}> {
                         accounts={accounts}
                         updateAddress={this.updateAddress}
                         updateChain={this.updateChain}
-                        updateAccounts={this.updateAccounts}
+                        onAddAccount={this.onAddAccount}
                         resetAccount={this.resetAccount}
                       />
                       <SActionsColumn>
