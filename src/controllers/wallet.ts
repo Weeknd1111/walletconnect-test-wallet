@@ -364,7 +364,7 @@ export class WalletController {
 
     this.accounts = resConf.accounts;
     this.saveds = [];
-    
+
     this.nextMnemonicPathIndex = DEFAULT_NEXT_MNEMONIC_PATH_INDEX;
     for (let i = 0; i < this.accounts.length; i++) {
       const account: IAccount = this.accounts[i];
@@ -380,6 +380,37 @@ export class WalletController {
     
     setLocal(SAVEDS, this.saveds);
     setLocal(NEXT_MNEMONIC_PATH_INDEX, this.nextMnemonicPathIndex);
+  }
+
+  // 地址转换账户
+  public addrToAccount(addr : string) : IAccount {
+    addr = ethers.utils.getAddress(addr);
+    for(let i = 0; i < this.accounts.length; i++) {
+      const item : IAccount = this.accounts[i];
+      if(item.address === addr) {
+        return item;
+      }
+    }
+    throw Error("address not found: " + addr);
+  }
+  
+  // 地址转换账户
+  public addrsToAccounts(addrs : string []) : IAccount[] {
+    for(let i = 0;i < addrs.length; i++) {
+      addrs[i] = ethers.utils.getAddress(addrs[i]);
+    }
+    const accounts : IAccount[] = [];
+    for(let i = 0; i < addrs.length; i++) {
+      const addr = addrs[i];
+      for(let j = 0; j < this.accounts.length; j++) {
+        const item : IAccount = this.accounts[j];
+        if(item.address === addr) {
+          accounts.push(item);
+          break;
+        }
+      }
+    }
+    return accounts;
   }
 
   public async populateTransaction(transaction: any) {

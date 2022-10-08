@@ -22,3 +22,9 @@ src/controllers/wallet.ts
 - src/controllers/wallet.ts 
     - 导出数据 exportConfig(): string
     - 导入数据 importConfig(value: string): void
+
+## 20221008
+1. 地址转换账户
+- src/controllers/wallet.ts 
+    - public addrToAccount(addr : string) : IAccount
+    - public addrsToAccounts(addrs : string []) : IAccount[]
