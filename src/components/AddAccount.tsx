@@ -10,12 +10,21 @@ const SDropdown = styled(Dropdown)`
   margin-right: 5px;
 `;
 
+const SInput = styled(Input)`
+  margin-bottom: 10px;
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
 interface IAddAccountProps {
   onAddAccount?: any;
 };
 
 interface IAddAccountState {
+  isCreatModalOpen: boolean;
   isImportModalOpen: boolean;
+  accountName: string;
   privateKey: string;
 }
 
@@ -25,14 +34,16 @@ class AddAccount extends React.Component<IAddAccountProps> {
   constructor(props: any) {
     super(props);
     this.state = {
+      isCreatModalOpen: false,
       isImportModalOpen: false,
+      accountName: "",
       privateKey: "",
     };
   };
 
   public onClick: MenuProps["onClick"] = ({ key }) => {
     if (key === "1") {
-      this.creatAccount();
+      this.showCreatAccountModal();
     }
     if (key === "2") {
       this.showImportAccountModal();
@@ -62,15 +73,39 @@ class AddAccount extends React.Component<IAddAccountProps> {
     }
   };
 
-  // 创建账户
-  public creatAccount = async () => {
+  public setIsCreatModalOpen = (isCreatModalOpen: boolean) => {
+    this.setState({
+      isCreatModalOpen,
+    });
+  };
+
+  public showCreatAccountModal = async () => {
+    const accountName = await getAppControllers().wallet.newAccountName();
+    await this.setState({
+      accountName,
+    });
+    this.setIsCreatModalOpen(true);
+  };
+
+  // 确定创建账户
+  public handleCreatAccountOk = async () => {
+    const { accountName } = this.state;
+    if (!accountName) {
+      message.error("Please enter account name");
+      return;
+    }
     try {
       await getAppControllers().wallet.addAccount();
       this.onAddAccount();
+      this.setIsCreatModalOpen(false);
       message.success("Creat account successfully");
     } catch (error) {
       message.error(error.message);
     }
+  };
+
+  public handleCreatAccountCancel = () => {
+    this.setIsCreatModalOpen(false);
   };
 
   public setIsImportModalOpen = (isImportModalOpen: boolean) => {
@@ -80,19 +115,23 @@ class AddAccount extends React.Component<IAddAccountProps> {
   };
 
   public showImportAccountModal = async () => {
-    await this.setState({ privateKey: "" });
+    const accountName = await getAppControllers().wallet.newAccountName();
+    await this.setState({
+      accountName,
+      privateKey: "",
+    });
     this.setIsImportModalOpen(true);
   };
 
   // 确定导入账户
   public handleImportAccountOk = async () => {
-    const { privateKey } = this.state;
+    const { accountName, privateKey } = this.state;
     if (!privateKey) {
       message.error("Please enter your private key string");
       return;
     }
     try {
-      await getAppControllers().wallet.addAccount(privateKey);
+      await getAppControllers().wallet.addAccount(privateKey, accountName);
       this.onAddAccount();
       this.setIsImportModalOpen(false);
       message.success("Import account successfully");
@@ -105,6 +144,14 @@ class AddAccount extends React.Component<IAddAccountProps> {
     this.setIsImportModalOpen(false);
   };
 
+  public onAccountNameChange = async (e: any) => {
+    const data = e.target.value;
+    const accountName = typeof data === "string" ? data : "";
+    if (accountName) {
+      await this.setState({ accountName });
+    }
+  };
+
   public onPrivateKeyChange = async (e: any) => {
     const data = e.target.value;
     const privateKey = typeof data === "string" ? data : "";
@@ -114,7 +161,7 @@ class AddAccount extends React.Component<IAddAccountProps> {
   };
 
   public render() {
-    const { isImportModalOpen } = this.state;
+    const { isCreatModalOpen, isImportModalOpen, accountName } = this.state;
     return (
       <React.Fragment>
         <SDropdown overlay={this.menu} placement="bottomLeft">
@@ -125,8 +172,12 @@ class AddAccount extends React.Component<IAddAccountProps> {
             </Space>
           </a>
         </SDropdown>
+        <Modal title="Creat Account" open={isCreatModalOpen} onOk={this.handleCreatAccountOk} onCancel={this.handleCreatAccountCancel}>
+          <SInput value={accountName} onChange={this.onAccountNameChange} placeholder="Enter account name string here" />
+        </Modal>
         <Modal title="Import Account" open={isImportModalOpen} onOk={this.handleImportAccountOk} onCancel={this.handleImportAccountCancel}>
-          <Input onChange={this.onPrivateKeyChange} placeholder="Enter your private key string here" />
+          <SInput value={accountName} onChange={this.onAccountNameChange} placeholder="Enter account name string here" />
+          <SInput onChange={this.onPrivateKeyChange} placeholder="Enter your private key string here" />
         </Modal>
       </React.Fragment>
     );
